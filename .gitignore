@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+
+data/raw/
+data/processed/
+data/interim/
+
+*.pt
+*.onnx
+runs/
+wandb/
+.ipynb_checkpoints/
+
+.DS_Store
+.env
