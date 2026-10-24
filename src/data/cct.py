@@ -5,6 +5,7 @@ import json
 import pandas as pd
 
 ANNOTATIONS_DIR = Path("data/raw/annotations/extracted/eccv_18_annotation_files")
+EMPTY_CATEGORY_ID = 30
 
 SPLIT_FILES = [
     "train_annotations.json",
@@ -25,6 +26,9 @@ def load_pooled(locations: set[int]) -> tuple[pd.DataFrame, pd.DataFrame, dict[i
     all_images: dict[str, dict] = {}
     all_annotations: list[dict] = []
     categories: dict[int, str] = {}
+    images_with_box: set[str] = set()
+    images_with_empty: set[str] = set()
+    images_with_unboxed_label: set[str] = set()
 
     for split_file in SPLIT_FILES:
         with open(ANNOTATIONS_DIR / split_file) as f:
@@ -39,11 +43,28 @@ def load_pooled(locations: set[int]) -> tuple[pd.DataFrame, pd.DataFrame, dict[i
                 kept_image_ids.add(im["id"])
 
         for ann in d["annotations"]:
-            if ann["image_id"] in kept_image_ids:
+            if ann["image_id"] not in kept_image_ids:
+                continue
+            if ann["category_id"] == EMPTY_CATEGORY_ID:
+                images_with_empty.add(ann["image_id"])
+            elif "bbox" in ann:
+                images_with_box.add(ann["image_id"])
                 all_annotations.append(ann)
+            else:
+                # Image-level species label with no box location - unusable
+                # for detection, and NOT the same as a genuinely empty frame.
+                images_with_unboxed_label.add(ann["image_id"])
 
-    images_df = pd.DataFrame(all_images.values()).set_index("id")
+    ambiguous_ids = images_with_unboxed_label - images_with_box
+    usable_ids = (images_with_box | images_with_empty) - ambiguous_ids
+    print(
+        f"load_pooled: {len(images_with_box)} boxed, {len(images_with_empty - images_with_box)} empty, "
+        f"{len(ambiguous_ids)} ambiguous (excluded) -> {len(usable_ids)} usable images"
+    )
+
+    images_df = pd.DataFrame(all_images[i] for i in all_images if i in usable_ids).set_index("id")
     annotations_df = pd.DataFrame(all_annotations)
+    annotations_df = annotations_df[annotations_df["image_id"].isin(usable_ids)]
     return images_df, annotations_df, categories
 
 
