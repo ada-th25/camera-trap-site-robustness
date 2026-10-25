@@ -74,3 +74,30 @@ def match_predictions(
     fn = sum(1 for unmatched in gt_matched if not unmatched)
 
     return {"tp": tp, "fp": fp, "fn": fn}
+
+
+def get_matched_gt_mask(
+    pred_boxes: list[list[float]], gt_boxes: list[list[float]], iou_threshold: float = 0.5
+) -> list[bool]:
+    """Same greedy matching as match_predictions, but returns which specific
+    ground-truth boxes were found rather than aggregate TP/FP/FN counts.
+
+    Needed for condition breakdowns (e.g. "what's recall for small boxes
+    specifically"), where we need to know *which* ground-truth box was
+    matched, not just how many.
+    """
+    gt_matched = [False] * len(gt_boxes)
+
+    for pred_box in pred_boxes:
+        best_iou = 0
+        best_gt_idx = -1
+        for i, gt_box in enumerate(gt_boxes):
+            if not gt_matched[i]:
+                iou = compute_iou(pred_box, gt_box)
+                if iou > best_iou:
+                    best_iou = iou
+                    best_gt_idx = i
+        if best_iou >= iou_threshold and best_gt_idx != -1:
+            gt_matched[best_gt_idx] = True
+
+    return gt_matched
