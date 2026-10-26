@@ -41,7 +41,11 @@ def main() -> None:
 
     ax.set_ylim(0, 0.32)
     ax.set_ylabel("mAP50", color=TEXT_PRIMARY)
-    ax.set_title("Detection accuracy drops by more than half\nat an unseen camera location", color=TEXT_PRIMARY, fontsize=12)
+    ax.set_title(
+        "Detection accuracy drops by more than half\nat an unseen camera location",
+        color=TEXT_PRIMARY,
+        fontsize=12,
+    )
     ax.tick_params(colors=TEXT_SECONDARY)
     for spine in ["top", "right"]:
         ax.spines[spine].set_visible(False)
