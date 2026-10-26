@@ -90,3 +90,7 @@ docker run --rm \
 - **The day/night finding has an unverified explanation.** Recall is higher at night than during the day, which holds up across size buckets, but the proposed explanation (IR images being higher-contrast than cluttered daytime backgrounds) is a hypothesis from visual inspection, not independently tested.
 - **Export format choice should be re-checked on new hardware.** ONNX was faster than PyTorch on GPU but slower on CPU for this model. That result is specific to the hardware tested here and was not re-checked against other execution providers (for example ONNX Runtime's CoreML provider on Apple Silicon).
 - **No stretch goals attempted.** Multi-object tracking and training a second model size for a fuller accuracy/speed/size comparison were both considered and deliberately left out to keep the project's scope matched to its actual research question.
+
+## A note on AI assistance
+
+This project was built working through each step with Claude Code as a pairing and mentoring tool, rather than as a code generator. I wrote the core logic myself where it mattered most for learning (the location-based data split and its leakage check, the IoU and detection-matching functions, the day/night and bounding-box condition classifiers), with each piece reviewed before moving on. Claude handled scaffolding, debugging, data verification, and drafting around that core logic, and the commit history reflects this collaboration through `Co-Authored-By` tags.
