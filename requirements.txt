@@ -51,6 +51,7 @@ pytz==2026.5
 PyYAML==6.0.3
 pyzmq==27.2.0
 requests==2.34.2
+ruff==0.17.2
 six==1.17.0
 stack-data==0.6.3
 sympy==1.14.0

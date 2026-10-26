@@ -51,7 +51,9 @@ def main() -> None:
 
         if not gt_boxes_xyxy:
             # Genuinely empty frame (no real annotation) - any prediction here is a false positive.
-            empty_frame_rows.append({"file_name": row["file_name"], "day_night": day_night, "num_fp": len(pred_boxes)})
+            empty_frame_rows.append(
+                {"file_name": row["file_name"], "day_night": day_night, "num_fp": len(pred_boxes)}
+            )
             continue
 
         matched = get_matched_gt_mask(pred_boxes, gt_boxes_xyxy, iou_threshold=0.5)
@@ -59,7 +61,12 @@ def main() -> None:
             bbox_xywh = [x1, y1, x2 - x1, y2 - y1]
             size_bucket = bbox_size_category(bbox_xywh, row["width"], row["height"])
             box_rows.append(
-                {"file_name": row["file_name"], "day_night": day_night, "size_bucket": size_bucket, "found": found}
+                {
+                    "file_name": row["file_name"],
+                    "day_night": day_night,
+                    "size_bucket": size_bucket,
+                    "found": found,
+                }
             )
 
     box_df = pd.DataFrame(box_rows)

@@ -1,6 +1,6 @@
 """Loading and pooling CCT20 COCO-style annotation files."""
-from pathlib import Path
 import json
+from pathlib import Path
 
 import pandas as pd
 

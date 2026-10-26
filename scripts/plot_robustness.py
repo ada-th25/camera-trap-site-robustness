@@ -60,7 +60,9 @@ def main() -> None:
         OUT_DIR / "recall_by_daynight.png",
     )
 
-    by_size = box_df.groupby("size_bucket")["found"].agg(["mean", "count"]).reindex(["small", "medium", "large"])
+    by_size = (
+        box_df.groupby("size_bucket")["found"].agg(["mean", "count"]).reindex(["small", "medium", "large"])
+    )
     bar_chart(
         by_size.index.tolist(),
         by_size["mean"].tolist(),

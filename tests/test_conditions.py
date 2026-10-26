@@ -1,7 +1,8 @@
-import numpy as np
 import cv2
+import numpy as np
 
 from src.eval.conditions import bbox_size_category, classify_day_night
+
 
 def test_classify_day_night_detects_grayscale(tmp_path):
     gray_image = np.full((50, 50, 3), 128, dtype=np.uint8)  # R=G=B everywhere
