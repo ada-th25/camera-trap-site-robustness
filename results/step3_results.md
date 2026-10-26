@@ -74,19 +74,49 @@ completely different cat performance.
 
 ### `coyote`: recall held up (0.58->0.46) but precision collapsed (0.41->0.08)
 
-Checked the model's "coyote" predictions on the test set directly: 39 predicted
-coyote boxes vs. only 13 real coyote instances. Sampling 9 of these predictions
-against ground truth, 6 were actually **`bobcat`**, not coyote.
+Initial manual check: sampled 9 of the model's 39 "coyote" predictions on the
+test set against ground truth, and found 6 were actually **`bobcat`**.
 
 ![Bobcat predicted as coyote](figures/bobcat_coyote_confusion.jpg)
 
-Localization is near-perfect (predicted and ground-truth boxes almost exactly
-overlap) - the failure is purely the species label, not detection. Training
-locations (51, 108) had only 5 bobcat instances combined, while location 125 is
-bobcat-dominant (135 instances) - the model essentially never learned real
-bobcat features and falls back to the closest class it does know (coyote),
-especially likely under IR/night conditions where silhouette, not color/texture,
-is most of the available signal.
+Localization is near-perfect in this example (predicted and ground-truth boxes
+almost exactly overlap) - the failure is purely the species label, not
+detection.
+
+**Follow-up with the full confusion matrix** (pulled via `model.val()`,
+`runs/detect/.../confusion_matrix.png`, copied to
+`figures/confusion_matrix.png`) gave a fuller and partly different picture.
+Cross-checking predicted-class counts against the known true-instance totals
+from Step 2 as a sanity check:
+
+- **`cat`** (6 true instances, fully reconciled): 0 correctly predicted - all 6
+  were called opossum (1), squirrel (1), **rabbit (3)**, or missed (1). The
+  manual 2-image camouflage inspection above is still a reasonable read of
+  *why* these get missed, but the model's actual wrong guess is usually
+  "rabbit," not something I'd have picked out by eye alone.
+- **`dog`** (21 true instances, ~20/21 reconciled): mostly confused as
+  **coyote (10)** and **skunk (6)**.
+- **`bobcat`** (135 true instances, ~124/135 reconciled - treat as
+  approximate): the *largest* confusion is actually **rabbit (34)**, with
+  **coyote (24)** second. The manual sample above found a real pattern
+  (bobcat->coyote confusion exists), but missed that bobcat->rabbit is even
+  more common - a direct demonstration of why spot-checking 9 of 39
+  predictions can find a real effect while still misjudging which effect is
+  dominant.
+
+**What I'm not reporting from this matrix:** the "background" row/column
+values (in the hundreds, e.g. 590, 619) are far larger than the entire test
+set (302 images) and are a known artifact of how Ultralytics computes that
+matrix internally (pre-NMS candidate boxes, not final per-image counts) -
+I can't verify what they actually represent, so I'm not stating them as
+findings. The per-class precision/recall table from Step 2 remains the
+reliable source for false-positive/miss rates.
+
+Combined explanation: training locations (51, 108) had only 5 bobcat instances
+combined, while location 125 is bobcat-dominant (135 instances) - the model
+never learned strong bobcat-specific features and falls back to whichever
+similarly-shaped class it does know, which the full matrix shows is split
+between rabbit and coyote rather than being one clean confusion.
 
 ## Key takeaways
 
@@ -102,6 +132,11 @@ is most of the available signal.
    confusion with an underrepresented species) rather than being generically
    "hard" - this came only from looking at actual images, not from the metrics
    alone.
+4. Manual spot-checking (9 of 39 coyote predictions) found a real confusion
+   pattern but the wrong relative ranking - the full confusion matrix showed
+   bobcat->rabbit confusion is larger than bobcat->coyote. Spot-checks are a
+   good way to generate hypotheses quickly, but the full matrix is needed to
+   know which confusion is actually dominant.
 
 ## Limitations
 
